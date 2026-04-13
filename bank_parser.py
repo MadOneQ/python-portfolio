@@ -1,5 +1,5 @@
 import pandas as pd
-
+import sys
 
 # 1.LOAD
 
@@ -8,8 +8,25 @@ def load_statement(filepath):
     
     return df
 
+# 2. DETECT and LOAD
 
-# 2. CLEAN
+def detect_and_load(filepath):
+    # Detect Separator
+    with open(filepath, 'r') as f:
+        first_line = f.readline()
+        separator = ";" if ";" in first_line else ","
+
+    df = pd.read_csv(filepath, sep=separator)
+
+    # Normalize column names to lowercase
+    df.columns = df.columns.str.lower().str.strip()
+
+    print(f"Detected separator: '{separator}'")
+    print(f"Columns found: {list(df.columns)}")
+
+    return df
+
+# 3. CLEAN
 
 def clean_statement(df):
     df["description"] = df["description"].str.upper()
@@ -22,24 +39,24 @@ def clean_statement(df):
     return df
 
 
-# 3. CATEGORIZE
+# 4. CATEGORIZE
 
 def categorize(description):
-    if "SALARY" in description or "FREELANCE" in description:
+    if any(k in description for k in ["SALARY", "SALAIRE", "FREELANCE", "VIREMENT"]):
         return "Income"
-    elif "AMAZON" in description:
+    elif any(k in description for k in ["AMAZON"]):
         return "Shopping"
-    elif "CARREFOUR" in description:
+    elif any(k in description for k in ["CARREFOUR", "SUPERMARKET", "LECLERC", "LIDL", "ALDI"]):
         return "Groceries"
-    elif "NETFLIX" in description or "SPOTIFY" in description:
+    elif any(k in description for k in ["NETFLIX", "SPOTIFY", "DEEZER", "CANAL"]):
         return "Subscriptions"
-    elif "UBER" in description:
+    elif any(k in description for k in ["UBER", "TAXI", "SNCF", "RATP"]):
         return "Transport"
-    elif "ELECTRICITY" in description or "INTERNET" in description:
+    elif any(k in description for k in ["ELECTRICITY", "ELECTRICITE", "EDF", "INTERNET", "ENGIE", "FREE", "ORANGE"]):
         return "Bills"
-    elif "RESTAURANT" in description:
+    elif any(k in description for k in ["RESTAURANT", "BRASSERIE", "CAFE", "McDONALD"]):
         return "Dining"
-    elif "GYM" in description or "PHARMACY" in description:
+    elif any(k in description for k in ["GYM", "PHARMACY", "PHARMACIE", "DOCTOR"]):
         return "Health"
     else:
         return "Other"
@@ -49,7 +66,7 @@ def add_categories(df):
     return(df)
 
 
-# 4. SUMMARIZE
+# 5. SUMMARIZE
 
 def summarize(df):
     expenses = df[df["amount"] < 0]["amount"].sum()
@@ -68,7 +85,7 @@ def monthly_summary(df):
     return monthly
 
 
-# 5. EXPORT
+# 6. EXPORT
 
 def export(df, summary, monthly):
     df.to_csv("bank_statement_clean.csv", index = False)
@@ -77,10 +94,17 @@ def export(df, summary, monthly):
     print("Files exported.")
 
 
-# 6. MAIN
+# 7. MAIN
 
 def main():
-    df = load_statement("bank_statement.csv")
+    if len(sys.argv) < 2:
+        filepath = "bank_statement.csv"
+        print("No file specified, using default: bank_statement.csv")
+    else:
+        filepath = sys.argv[1]
+        print(f"Loading: {filepath}")
+      
+    df = detect_and_load(filepath)
     df = clean_statement(df)
     df = add_categories(df)
     summarize(df)
