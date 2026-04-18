@@ -1,0 +1,21 @@
+# Generated outputs
+*.csv
+*.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# VS Code
+.vscode/
+
+# Environment
+.env
+venv/
+
+# Keep source data files
+!bank_parser/bank_statement.csv
+!bank_parser/bank_statement_fr.csv
+!bank_parser/bank_statement_messy.csv
+
