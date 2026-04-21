@@ -3,9 +3,12 @@
 Reads real-time sensor data from Arduino over Serial,
 parses JSON and logs to CSV.
 
+
 ## Requirements
-```bash
+
+bash
 pip install pyserial
+
 
 ## How to Run
 
@@ -14,11 +17,13 @@ pip install pyserial
 3. Run: python serial_bridge.py
 4. Stop with Ctrl+C — data saved to sensor_log.csv
 
+
 ## Output
 
 sensor_log.csv — timestamped sensor readings
 timestamp,temp,humidity,distance,light
 2026-04-14 23:19:22,26.0,52.0,278.04,453
+
 
 ## Wiring
 Component	Pin
@@ -29,3 +34,10 @@ LDR	A0
 LCD-RS	7
 LCD-EN	8
 LCD-D4_D7	9-12
+
+
+## Motion Detection
+PIR_PIN 3
+LCD displays "Motion!" or "No Motion" at each reading.
+Serial stream logs 1 or 0.
+There is a console alert at each state change (0 to 1 or 1 to 0), the monitor writes "MOTION DETECTED" or "MOTION STOPPED", allowing precise timestamping.
