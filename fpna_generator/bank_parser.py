@@ -1,12 +1,18 @@
 import pandas as pd
 import sys
+import matplotlib.pyplot as plt
+import argparse
+import os
+
 
 # 1.LOAD
 
-def load_statement(filepath):
-    df = pd.read_csv(filepath)
-    
-    return df
+def get_filepath():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file", default="bank_parser/bank_statement.csv")
+    args = parser.parse_args()
+
+    return args.file
 
 # 2. DETECT and LOAD
 
@@ -85,36 +91,40 @@ def monthly_summary(df):
     return monthly
 
 
+def generate_charts(summary):
+    os.makedirs("bank_parser/charts", exist_ok=True)
+    plt.bar(summary.index, summary.values)
+    plt.title("Spending by Category")
+    plt.savefig("bank_parser/charts/spending_by_category.png")
+    plt.close
+
 # 6. EXPORT
 
-def export(df, summary, monthly):
-    df.to_csv("bank_statement_clean.csv", index = False)
-    summary.to_csv("summary.csv", header=["total_amount"])
-    monthly.to_csv("monthly_summary.csv", header=["total_amount"])
-    print("Files exported.")
+def export_excel(df, summary, monthly):
+    with pd.ExcelWriter("report.xlsx", engine="openpyxl") as writer:
+        df.to_excel(writer, sheet_name="Transactions", index=False)
+        summary.to_excel(writer, sheet_name="Summary", index=True)
+        monthly.to_excel(writer, sheet_name="Monthly", index=True)
 
 
 # 7. MAIN
 
 def main():
-    if len(sys.argv) < 2:
-        filepath = "bank_statement.csv"
-        print("No file specified, using default: bank_statement.csv")
-    else:
-        filepath = sys.argv[1]
-        print(f"Loading: {filepath}")
-      
+    filepath = get_filepath()
     df = detect_and_load(filepath)
+
     df = clean_statement(df)
     df = add_categories(df)
     summarize(df)
     summary = category_summary(df)
     monthly = monthly_summary(df)
-    export(df, summary, monthly)
+    generate_charts(summary)
+    export_excel(df, summary, monthly)
     print("\nCategory Summary:")
     print(summary)
     print("\nMonthly Summary:")
     print(monthly)
+    print("\nReport generated: report.xlsx + charts/")
 
 if __name__ == "__main__":
     main()
